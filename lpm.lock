@@ -1,0 +1,12 @@
+{
+  "pkgs": {
+    "@mekstuff/docdocs-parser-typescript": {
+      "resolve": "C:\\Users\\Lanzo\\.local-package-manager\\packages\\@mekstuff\\docdocs-parser-typescript\\pkg",
+      "dependencyScope": "dependency"
+    },
+    "@mekstuff/logreport": {
+      "resolve": "C:\\Users\\Lanzo\\.local-package-manager\\packages\\@mekstuff\\logreport\\pkg",
+      "dependencyScope": "dependency"
+    }
+  }
+}

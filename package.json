@@ -1,0 +1,40 @@
+{
+  "name": "@mekstuff/docdocs",
+  "version": "1.0.0",
+  "author": "mekstuff <contact@mekstuff.com> (https://github.com/mekstuff)",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "docdocs": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "doc-website",
+    "schema.json"
+  ],
+  "scripts": {
+    "prepack": "yarn tsc"
+  },
+  "dependencies": {
+    "@mekstuff/docdocs-parser-typescript": "link:C:\\Users\\Lanzo\\.local-package-manager\\packages\\@mekstuff\\docdocs-parser-typescript\\pkg",
+    "@mekstuff/logreport": "link:C:\\Users\\Lanzo\\.local-package-manager\\packages\\@mekstuff\\logreport\\pkg",
+    "boxen": "^7.1.0",
+    "chalk": "^5.3.0",
+    "chokidar": "^3.5.3",
+    "cli-spinners": "^2.9.0",
+    "commander": "^10.0.1",
+    "enquirer": "^2.3.6",
+    "glob": "9.3.5",
+    "log-update": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.2.5",
+    "@typescript-eslint/eslint-plugin": "^5.60.1",
+    "@typescript-eslint/parser": "^5.60.1",
+    "eslint": "^8.43.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.8",
+    "typescript": "^5.1.3"
+  }
+}

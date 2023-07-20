@@ -1,0 +1,11 @@
+{
+  "title": "My DocDocs Doc!",
+  "description": "A VitePress | DocDocs Site",
+  "themeConfig": {
+    "nav": [{ "text": "Home", "link": "/" }],
+    "sidebar": {},
+    "socialLinks": [
+      { "icon": "github", "link": "https://github.com/vuejs/vitepress" }
+    ]
+  }
+}

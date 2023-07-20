@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Mekstuff's docdocs config schema",
+  "description": "Describes the schema of the `docdocs/config.json` file.",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "The title of the website"
+    },
+    "description": {
+      "type": "string",
+      "description": "The description of the website"
+    },
+    "lang": {
+      "type": "string",
+      "description": "The language of the website",
+      "default": "en-us"
+    }
+  }
+}
