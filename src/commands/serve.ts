@@ -1,7 +1,7 @@
 import fs from "fs";
 import chokidar from "chokidar";
 import { program as CommanderProgram } from "commander";
-import LogReport from "@mekstuff/logreport";
+import { Console } from "@mekstuff/logreport";
 import {
   BuildDocumentSource,
   getPackageDirectoryPackageManager,
@@ -21,20 +21,22 @@ import {
   GetCurrentDocDocsVersion,
   GetPackageVitePressVersion,
 } from "../utils/version-fetch.js";
-// import parseFile from "../core/parser.js";
-import DocDocsTypescriptParser, {
-  GetParserVersion,
-  SerializedClassSymbol,
-} from "@mekstuff/docdocs-parser-typescript";
-import { AddAPIClass, RemoveAPIClass } from "../core/transpiler.js";
 
+import {
+  ClassNode,
+  DocDocsParserTypescript,
+  GetParserVersion,
+  ISerializedClassNode,
+} from "@mekstuff/docdocs-parser-typescript";
+// import { AddAPIClass, RemoveAPIClass } from "../core/transpiler.js";
 import glob from "glob";
 import {
-  BuildPages,
-  UpdateConfig,
-  WatchConfig,
-  WatchPages,
-} from "../core/pages.js";
+  AddAPIClass,
+  ReadViteConfig,
+  RemoveAPIDirectory,
+  WriteApiFiles,
+} from "../core/transpiler.js";
+// import { WatchConfig, WatchPages } from "../core/pages.js";
 
 interface Iservecommandactionoptions {
   port: string;
@@ -47,7 +49,7 @@ async function servecommandaction(options: Iservecommandactionoptions) {
   const PackageInfo = getRequiredPackageInfo();
   assert(
     PackageInfo !== undefined,
-    "failed to retrieve package info from root."
+    "failed to retrieve package info from roots."
   );
   await createBuildCacheDirectory();
 
@@ -61,17 +63,15 @@ async function servecommandaction(options: Iservecommandactionoptions) {
     } catch (e) {
       //means directory existed but cannot remove.
       if ((e as { code: string }).code !== "ENOTEMPTY") {
-        LogReport.error(e);
+        Console.error(e);
       }
     }
   }
   const CacheFileExists = fs.existsSync(PackageDirectory);
   if (CacheFileExists) {
     //serve from cache.
-    LogReport(
-      `Found cache for "${PackageInfo!.name}" at:\n${PackageDirectory}`,
-      "info",
-      true
+    Console.info(
+      `Found cache for "${PackageInfo!.name}" at:\n${PackageDirectory}`
     );
   } else {
     //build new and add to cache
@@ -103,10 +103,10 @@ async function servecommandaction(options: Iservecommandactionoptions) {
   const DocDocsVersionLog = GetCurrentDocDocsVersion();
   const VitePressVersionLog = GetPackageVitePressVersion(PackageDirectory);
   const DocDocsTSParserVersionLog =
-    "DocDocs TS Parser Version: " + chalk.green(GetParserVersion());
+    "DocDocs TS Parser Version: " + chalk.green(await GetParserVersion());
   assert(
     PrefPackageManager !== undefined,
-    "Could not resolve package manager, this should not happen. Report bug to @mekstuff on github."
+    "Could not resolve package manager, this should not happen. Report bugs to @mekstuff on github."
   );
 
   const WatchingSourceFilesLog = `Watching Source Files: ${chalk.blue(
@@ -117,11 +117,11 @@ async function servecommandaction(options: Iservecommandactionoptions) {
 
   const watcher = chokidar.watch(options.input, { ignoreInitial: true });
 
-  type TrackFiles = { Classes: SerializedClassSymbol[] };
+  type TrackFiles = { Classes: ClassNode[] };
 
   //Pages
-  const PagesWatcher = await WatchPages(PackageDirectory);
-  const ConfigWatcher = await WatchConfig(PackageDirectory);
+  // const PagesWatcher = await WatchPages(PackageDirectory);
+  // const ConfigWatcher = await WatchConfig(PackageDirectory);
 
   const TRACK_FILES_INFO: {
     [key: string]: TrackFiles;
@@ -134,15 +134,9 @@ async function servecommandaction(options: Iservecommandactionoptions) {
     }
   };
 
-  /**
-   * changes `\` => `/`
-   */
-  const FilterFilePath = (filePath: string): string => {
-    return filePath.replace(/\\/g, "/");
-  };
-
+  /*
   const ParseFile = async (
-    TSParser: DocDocsTypescriptParser,
+    TSParser: DocDocsParserTypescript,
     file: string,
     reset?: boolean
   ) => {
@@ -175,12 +169,75 @@ async function servecommandaction(options: Iservecommandactionoptions) {
         TRACK_FILES_INFO[file] = newTracking;
       })
       .catch((err) => {
-        LogReport.error(`Could not parse ${file} => ${err}`, true);
+        Console.error(`Could not parse ${file} => ${err}`, true);
         console.error(err);
       });
     LogReport(`Transpiled ${file}...`, "info");
   };
+  */
 
+  Console.LOG(
+    pbox(
+      `${chalk.bold(
+        "Starting Development Server"
+      )}\n\n${DocDocsVersionLog}\n${VitePressVersionLog}\n${DocDocsTSParserVersionLog}\n\n${DevelopmentPortLog}\n${WatchingSourceFilesLog}`
+    )
+  );
+  Console.info(
+    `Visit In Browser: ${chalk.blue(`http://localhost:${options.port}\n`)}`
+  );
+  Console.info(chalk.yellow(`CTRL+C - Close development server.`));
+  const TranspilerLogger = Console.Log(chalk.redBright("Transpiler: "), "");
+  const ApiClassEntries: Map<string, ISerializedClassNode[]> = new Map();
+  const ParseFile = async (
+    TSParser: DocDocsParserTypescript,
+    file: string,
+    reset?: boolean
+  ) => {
+    TranspilerLogger(`Transpiling ${file}...  `);
+    TSParser.parse(file, reset)
+      .then(async (res) => {
+        const exists = ApiClassEntries.get(file);
+        if (exists === undefined) {
+          ApiClassEntries.set(file, []);
+        } else {
+          ApiClassEntries.set(
+            file,
+            exists.filter((x) =>
+              res.Classes.find((q) => {
+                if (q.symbol.name === x.symbol.name) {
+                  return false;
+                }
+              })
+            )
+          );
+        }
+        for (const Class of res.Classes) {
+          const m = ApiClassEntries.get(file);
+          if (m !== undefined) {
+            m.push(Class);
+          }
+        }
+        // const vc = await ReadViteConfig(PackageDirectory);
+        // if (vc === undefined) {
+        //   Console.error(`No vite config found. Failed Transpiling`);
+        //   process.exit(1);
+        // }
+        WriteApiFiles(PackageDirectory, ApiClassEntries);
+
+        // }
+        // ApiClassEntries.get(file)?.forEach((x) => {
+        //   console.log(res.Classes.indexOf(x), x.symbol.name);
+        // });
+        TranspilerLogger(`Transpiled ${file} ✅`);
+      })
+      .catch((err) => {
+        Console.error(`Failed to transpile ${file}. ${err}`, true);
+        TranspilerLogger("");
+        // TranspilerSpinner.stop();
+        // TranspilerSpinner.text("");
+      });
+  };
   //yield until watcher is ready.
   await new Promise<void>((resolve) => {
     const InputFiles: string[] = [];
@@ -189,7 +246,7 @@ async function servecommandaction(options: Iservecommandactionoptions) {
       files.forEach((e) => {
         InputFiles.push(e);
       });
-      const TSParser = new DocDocsTypescriptParser(InputFiles);
+      const TSParser = new DocDocsParserTypescript(InputFiles);
       //initialize api classes.
       InputFiles.forEach(async (f) => {
         await ParseFile(TSParser, f);
@@ -208,21 +265,10 @@ async function servecommandaction(options: Iservecommandactionoptions) {
       resolve();
     });
   });
-
-  LogReport(
-    pbox(
-      `${chalk.bold(
-        "Starting Development Server"
-      )}\n\n${DocDocsVersionLog}\n${VitePressVersionLog}\n${DocDocsTSParserVersionLog}\n\n${DevelopmentPortLog}\n${WatchingSourceFilesLog}`
-    ),
-    "info"
-  );
-
-  LogReport(chalk.yellow(`CTRL+C - Close development server.`), "info", true);
   process.on("SIGINT", () => {
     watcher.close();
-    PagesWatcher.close();
-    ConfigWatcher.close();
+    // PagesWatcher.close();
+    // ConfigWatcher.close();
     process.exit();
   });
 
@@ -232,19 +278,15 @@ async function servecommandaction(options: Iservecommandactionoptions) {
       cwd: PackageDirectory,
     }
   );
-  LogReport(
-    `Visit In Browser: ${chalk.blue(`http://localhost:${options.port}\n`)}`,
-    "info",
-    true
-  );
+
   devExec.stdout?.on("data", (data) => {
     // LogReport.warn(data);
   });
   devExec.on("close", (c) => {
-    LogReport.warn("Server closed with exit code " + c);
+    Console.warn("Server closed with exit code " + c);
   });
   devExec.on("error", (err) => {
-    LogReport.error(err);
+    Console.error(err);
   });
 }
 

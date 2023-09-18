@@ -1,12 +1,31 @@
 {
   "pkgs": {
-    "@mekstuff/docdocs-parser-typescript": {
-      "resolve": "C:\\Users\\Lanzo\\.local-package-manager\\packages\\@mekstuff\\docdocs-parser-typescript\\pkg",
-      "dependencyScope": "dependency"
+    "@mekstuff/logreport@1.0.0": {
+      "name": "@mekstuff/logreport@1.0.0",
+      "dependency_scope": "dependencies",
+      "install_type": "default",
+      "publish_sig": "7cfe09b622-da4ef6",
+      "resolve": "C:\\Users\\Lanzo\\.local-package-manager\\packages\\@mekstuff\\logreport\\1.0.0\\pkg",
+      "sem_ver_symbol": "^",
+      "traverse_imports": false
     },
-    "@mekstuff/logreport": {
-      "resolve": "C:\\Users\\Lanzo\\.local-package-manager\\packages\\@mekstuff\\logreport\\pkg",
-      "dependencyScope": "dependency"
+    "@mekstuff/cmkdn@1.0.0": {
+      "name": "@mekstuff/cmkdn@1.0.0",
+      "dependency_scope": "dependencies",
+      "install_type": "default",
+      "publish_sig": "95156b0f04-4f3839",
+      "resolve": "C:\\Users\\Lanzo\\.local-package-manager\\packages\\@mekstuff\\cmkdn\\1.0.0\\pkg",
+      "sem_ver_symbol": "^",
+      "traverse_imports": false
+    },
+    "@mekstuff/docdocs-parser-typescript@1.0.0": {
+      "name": "@mekstuff/docdocs-parser-typescript@1.0.0",
+      "dependency_scope": "dependencies",
+      "install_type": "default",
+      "publish_sig": "c177d61bca-7715a2",
+      "resolve": "C:\\Users\\Lanzo\\.local-package-manager\\packages\\@mekstuff\\docdocs-parser-typescript\\1.0.0\\pkg",
+      "sem_ver_symbol": "^",
+      "traverse_imports": false
     }
   }
 }

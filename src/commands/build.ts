@@ -59,14 +59,16 @@ async function InstallPackageDirectoryDeps(PackageDirectoryPath: string) {
   const x = logwaypoint();
   const INSTALLING_DEPS_LOG = logupdate(`Installing dependencies`, true);
   const prefix = `${targetPM} install`;
+  /*
   console.log(
     chalk.yellow(
       `Attempting to install dependencies with ${targetPM} using --prefer-offline flag for quicker installations.`
     )
   );
+  */
   try {
-    //attempt installing packages with --prefer-offline flag first.
-    execSync(prefix + " --prefer-offline", {
+    // attempt installing packages with --prefer-offline flag first.
+    execSync(prefix, {
       cwd: PackageDirectoryPath,
       stdio: "inherit",
     });
@@ -76,11 +78,13 @@ async function InstallPackageDirectoryDeps(PackageDirectoryPath: string) {
         `Fresh installation of dependencies will be installed using ${targetPM}. --prefer-offline flag failed.`
       )
     );
+    /*
     try {
       execSync(prefix, { cwd: PackageDirectoryPath, stdio: "inherit" });
     } catch (e) {
       err("Could not install dependencies. " + e);
     }
+    */
   }
   console.log(`Packages were installed using ${targetPM}`);
   INSTALLING_DEPS_LOG.stop();
